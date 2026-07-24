@@ -1,0 +1,13 @@
+repos:
+  - repo: local
+    hooks:
+      - id: validate-skill
+        name: Validate graph-driven Skill
+        entry: python3 scripts/validate.py
+        language: system
+        pass_filenames: false
+      - id: check-sensitive-data
+        name: Check sensitive data
+        entry: python3 scripts/check_secrets.py
+        language: system
+        pass_filenames: true

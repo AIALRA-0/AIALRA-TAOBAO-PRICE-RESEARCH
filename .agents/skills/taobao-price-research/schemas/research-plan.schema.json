@@ -1,0 +1,183 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "request_text",
+    "product",
+    "purchase_context",
+    "constraints",
+    "search",
+    "assumptions"
+  ],
+  "properties": {
+    "request_text": {
+      "type": "string",
+      "minLength": 4,
+      "maxLength": 2000
+    },
+    "product": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "canonical_query",
+        "brand",
+        "model",
+        "core_specification",
+        "condition",
+        "required_terms",
+        "excluded_terms"
+      ],
+      "properties": {
+        "canonical_query": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 200
+        },
+        "brand": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "core_specification": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "condition": {
+          "enum": [
+            "new",
+            "used",
+            "refurbished"
+          ]
+        },
+        "required_terms": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 12,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        },
+        "excluded_terms": {
+          "type": "array",
+          "maxItems": 24,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        }
+      }
+    },
+    "purchase_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "destination_region",
+        "membership"
+      ],
+      "properties": {
+        "destination_region": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "membership": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maximum_budget_cny",
+        "allowed_sale_types",
+        "require_in_stock"
+      ],
+      "properties": {
+        "maximum_budget_cny": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20
+        },
+        "allowed_sale_types": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "enum": [
+              "standard",
+              "used",
+              "refurbished"
+            ]
+          }
+        },
+        "require_in_stock": {
+          "type": "boolean"
+        }
+      }
+    },
+    "search": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "queries",
+        "pages_per_query",
+        "candidate_limit",
+        "detail_limit",
+        "review_limit"
+      ],
+      "properties": {
+        "queries": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 4,
+          "items": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 200
+          }
+        },
+        "pages_per_query": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        },
+        "candidate_limit": {
+          "type": "integer",
+          "minimum": 10,
+          "maximum": 80
+        },
+        "detail_limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        },
+        "review_limit": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 8
+        }
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "maxItems": 12,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 240
+      }
+    }
+  }
+}

@@ -1,0 +1,342 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "status",
+    "query_snapshot",
+    "recommendation",
+    "offers",
+    "coverage",
+    "manual_search_urls",
+    "warnings"
+  ],
+  "properties": {
+    "status": {
+      "enum": [
+        "complete",
+        "partial",
+        "no-result"
+      ]
+    },
+    "query_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_text",
+        "product",
+        "destination_region",
+        "condition",
+        "membership",
+        "retrieved_at"
+      ],
+      "properties": {
+        "request_text": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 2000
+        },
+        "product": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 300
+        },
+        "destination_region": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "condition": {
+          "enum": [
+            "new",
+            "used",
+            "refurbished"
+          ]
+        },
+        "membership": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "retrieved_at": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 64
+        }
+      }
+    },
+    "recommendation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision_type",
+        "winner_id",
+        "summary"
+      ],
+      "properties": {
+        "decision_type": {
+          "enum": [
+            "lowest-verified-total",
+            "lowest-displayed-price",
+            "no-viable-offer",
+            "manual-verification-required"
+          ]
+        },
+        "winner_id": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 600
+        }
+      }
+    },
+    "offers": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "rank",
+          "offer_id",
+          "title",
+          "selected_sku",
+          "seller_name",
+          "url",
+          "image_urls",
+          "price_cny",
+          "known_total_cny",
+          "cost_completeness",
+          "price_scope",
+          "eligible",
+          "exclusion_reasons",
+          "risk_score",
+          "risk_level",
+          "risk_reasons",
+          "review_summary",
+          "evidence_level",
+          "retrieved_at"
+        ],
+        "properties": {
+          "rank": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          },
+          "offer_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "title": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 500
+          },
+          "selected_sku": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "seller_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          },
+          "url": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 3000
+          },
+          "image_urls": {
+            "type": "array",
+            "maxItems": 4,
+            "items": {
+              "type": "string",
+              "minLength": 4,
+              "maxLength": 2000
+            }
+          },
+          "price_cny": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "known_total_cny": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "cost_completeness": {
+            "enum": [
+              "complete",
+              "display-only"
+            ]
+          },
+          "price_scope": {
+            "enum": [
+              "public",
+              "member",
+              "coupon",
+              "new-user",
+              "bundle",
+              "account-personalized",
+              "unknown"
+            ]
+          },
+          "eligible": {
+            "type": "boolean"
+          },
+          "exclusion_reasons": {
+            "type": "array",
+            "maxItems": 12,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240
+            }
+          },
+          "risk_score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "risk_level": {
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "risk_reasons": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240
+            }
+          },
+          "review_summary": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 600
+          },
+          "evidence_level": {
+            "const": "A"
+          },
+          "retrieved_at": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 64
+          }
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "queries_planned",
+        "queries_executed",
+        "pages_read",
+        "cards_seen",
+        "shortlisted",
+        "details_attempted",
+        "details_verified",
+        "reviews_inspected",
+        "blocked_reasons",
+        "failed_urls"
+      ],
+      "properties": {
+        "queries_planned": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 200
+          }
+        },
+        "queries_executed": {
+          "type": "array",
+          "maxItems": 4,
+          "items": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 200
+          }
+        },
+        "pages_read": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 12
+        },
+        "cards_seen": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 200
+        },
+        "shortlisted": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 20
+        },
+        "details_attempted": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 20
+        },
+        "details_verified": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 20
+        },
+        "reviews_inspected": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 8
+        },
+        "blocked_reasons": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          }
+        },
+        "failed_urls": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 3000
+          }
+        }
+      }
+    },
+    "manual_search_urls": {
+      "type": "array",
+      "maxItems": 4,
+      "items": {
+        "type": "string",
+        "minLength": 12,
+        "maxLength": 3000
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "maxItems": 30,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 300
+      }
+    }
+  }
+}
