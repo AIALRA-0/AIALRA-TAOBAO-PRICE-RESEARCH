@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import sys
+import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -45,6 +47,39 @@ class RuntimeContractTests(unittest.TestCase):
         self.assertNotIn("person@example.com", cleaned)
         self.assertNotIn("https://", cleaned)
         self.assertNotIn("123456789", cleaned)
+
+    def test_local_installer_links_the_repository_skill(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            destination_root = Path(temporary)
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(ROOT / "scripts" / "install_local.py"),
+                    "--dest",
+                    str(destination_root),
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(0, result.returncode, result.stderr)
+            destination = destination_root / "taobao-price-research"
+            self.assertTrue(destination.is_symlink())
+            self.assertEqual(SKILL_DIR.resolve(), destination.resolve())
+            repeated = subprocess.run(
+                [
+                    sys.executable,
+                    str(ROOT / "scripts" / "install_local.py"),
+                    "--dest",
+                    str(destination_root),
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(2, repeated.returncode)
 
 
 if __name__ == "__main__":

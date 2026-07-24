@@ -2,3 +2,9 @@ title = "Independent Skill repository secret scanning"
 
 [extend]
 useDefault = true
+
+[allowlist]
+description = "The core lock contains only deterministic SHA-256 file digests"
+paths = [
+  '''^\.core-lock\.json$'''
+]

@@ -82,6 +82,22 @@ Skill 不会通过切换隐蔽工具、读取浏览器数据或使用搜索摘�
 
 ## 怎样使用
 
+先在本机创建 Codex Skill 链接：
+
+```bash
+python3 scripts/install_local.py
+```
+
+安装器把 `~/.codex/skills/taobao-price-research` 链接到当前仓库中的真实 Skill 目录
+
+符号链接让 Codex 能够发现 Skill，同时保留 Runner 需要的核心锁、版本、学习目录和运行状态目录
+
+安装器不会覆盖已经存在的路径
+
+移动或删除当前仓库会使链接失效
+
+安装完成后，Skill 会在 Codex 的下一轮任务中可用
+
 把自然语言请求转换成入口 JSON
 
 示例：
@@ -125,7 +141,7 @@ python3 scripts/validate.py
 python3 .agents/skills/taobao-price-research/scripts/freeze_core.py --check
 ```
 
-测试覆盖正常完成、去重、排除错误商品、优惠计算、风险排名、虚假赢家拒绝、登录暂停和恢复
+测试覆盖正常完成、去重、排除错误商品、优惠计算、风险排名、虚假赢家拒绝、登录暂停、策略阻止回退和本地安装
 
 ## 人工审计顺序
 
