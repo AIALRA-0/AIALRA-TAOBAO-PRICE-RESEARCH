@@ -1,6 +1,6 @@
 interface:
   display_name: "淘宝商品查价与风险研究"
-  short_description: "批量搜索淘宝商品并核验价格 店铺 评价 图片和购买风险"
+  short_description: "通过页面和官方接口搜索淘宝商品并核验价格 规格 店铺和风险"
   default_prompt: "使用 $taobao-price-research 搜索这款商品的淘宝在售结果，核验价格和风险，并找出最低价可行商品"
 
 policy:

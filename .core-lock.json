@@ -1,8 +1,9 @@
 {
   "files": {
-    ".agents/skills/taobao-price-research/SKILL.md": "2d749d5542e9ef98b22d7f9bb1cf208b27d20c03e4aa32252713d4f3a1caeb85",
-    ".agents/skills/taobao-price-research/agents/openai.yaml": "f3d00cbf035b2be198e56fed63fbefa349fb548b6c2f9bc13857a0e29c550357",
-    ".agents/skills/taobao-price-research/references/browser-collection.md": "71937758e414df32f2aae6c67db2037102877ce109b6e0a84946705f4b5f62e7",
+    ".agents/skills/taobao-price-research/SKILL.md": "c623c15bd219829d7f9dc5af4a7cf4bd9466965b9d55121e5c12a9377799593c",
+    ".agents/skills/taobao-price-research/agents/openai.yaml": "4e620e0ddd8aaad965e2c124a4118c3f158cafffe384549e06915c15d71bc7ac",
+    ".agents/skills/taobao-price-research/references/browser-collection.md": "4b79551ff64a6f8ba3892e49ab9af32d5cfd62269c40644981690f11ba6c1420",
+    ".agents/skills/taobao-price-research/references/official-api.md": "4ef60d91030df4e92fc785984b990f9f8c329dcc10e37c7c43397a010897d51d",
     ".agents/skills/taobao-price-research/references/risk-ranking.md": "726286a13ce9f0ba150e71a1a48cb34c3708dfe3cc7397ae8c7af696dacec7e9",
     ".agents/skills/taobao-price-research/schemas/fallback-input.schema.json": "59dd9138acc693310fce4722159a02240f995b2be524301ba57548a1aa7b10fa",
     ".agents/skills/taobao-price-research/schemas/final.schema.json": "daf0fe887a67169057f38f34ab0a61e29be6a02951d6712586c6f43ccbcbfbd0",
@@ -20,22 +21,23 @@
     ".agents/skills/taobao-price-research/scripts/rank_offers.py": "7678ff3cbfcfa7756dd898486e1b41e1f021b4a6c0371d89d3a96834ca647bc2",
     ".agents/skills/taobao-price-research/scripts/runner.py": "180226e0b319942738f5dd941adf1a668224007d7580b549c34bb4de5d54a30d",
     ".agents/skills/taobao-price-research/scripts/runtime_lib.py": "0dafaa787698c80ff7fb88dac5a88e0be8da086d67ffc7a15276b6f51152cb7d",
+    ".agents/skills/taobao-price-research/scripts/top_api.py": "c1b1678f80c597cdb0c2be411636248ccb2674b13bfe9b15c16427eb088e0a15",
     ".agents/skills/taobao-price-research/scripts/validate_final.py": "734741b661f04bda0b4493925aff35b723b380692cc83f2facc0858bca6af893",
     ".agents/skills/taobao-price-research/scripts/validate_inspection.py": "3fada6d6bf140408a873760b38f1ca27fd1b4d602f7a7dccfd3ad967678bbe38",
     ".agents/skills/taobao-price-research/scripts/validate_repo.py": "9ba8d60f624d47375876094ca3996817b943d22d8dde9c1dcf4a524ca86c7957",
     ".agents/skills/taobao-price-research/scripts/validate_search_results.py": "40729dda1bfbd85e884111588d0d4fd620f2ec2d95534699f572c05ed6c0d94d",
-    ".agents/skills/taobao-price-research/workflow.yaml": "f43b519c7025f1c38ee2772c6acd0d33b50a444f467cb1a08c02ace41b44af41",
+    ".agents/skills/taobao-price-research/workflow.yaml": "16ff1188219264004735de89889ec45362d9b758f71e5ec7fee23cbe9865a107",
     ".github/workflows/validate.yml": "bc14f2d11feedbf9030b11ab5ff510f9e81579483b37077d78c0912656bdd72d",
     ".gitleaks.toml": "d2c27656257bc56cb262999fef033e13f3a54a8554a0f5a4e5e4703ecc668d08",
     ".pre-commit-config.yaml": "721f006af8f50751b68c7ac00cad81d44cf57cb7296403916eeb17a760f25643",
-    "AGENTS.md": "6f3c58d92d888120d77299883e5e1b9e1f26c6b0e0d671cc44599ec9d06b6fb8",
-    "SECURITY.md": "17fc979b155386ee82cad605f0f92a39740205f4eb3e29a5a2f1341a0465ee41",
-    "VERSION": "e9dd8507f4bf0c6f42458e41aea833ad0bd3f6127272335eee9bf4d58541ed67",
+    "AGENTS.md": "c10ab556d294ce54699f0d32462cbc0cba7e627971ec2a9fe1bc9b2e8715842f",
+    "SECURITY.md": "16273f864ee7119bbb280d952e18a75270a69fedc9a603299d7da3bbb8f72690",
+    "VERSION": "1f930dd1f133c1f97a94fe3acb8db34372cf4c01ffdb2b3ff4ca72f9494121e9",
     "scripts/check_secrets.py": "ac9d3ffc77761524984947c074495fd74120e4f9ecb657d4b37af145703808cc",
     "scripts/install_local.py": "e5ab3d37dcb6e1a4eef8bd28b848326fe4477735e3bb5c56c8e7f8775a946814",
     "scripts/validate.py": "bd6ff45c47651e415f25cd26db712f4da73606f4723e2ff8f8f58077d5f29f5e"
   },
   "format_version": 1,
   "skill_name": "taobao-price-research",
-  "skill_version": "0.1.0"
+  "skill_version": "0.2.0"
 }

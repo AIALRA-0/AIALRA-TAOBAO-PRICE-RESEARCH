@@ -57,6 +57,8 @@ python3 .agents/skills/taobao-price-research/scripts/freeze_core.py --check
 - 结构化外部操作直接使用 MCP
 - 网页结构可靠时使用浏览器 DOM
 - 缺少结构化操作时才使用 Computer Use
+- 淘宝页面不可读时只使用工作流声明的淘宝开放平台只读回退脚本
+- 淘宝开放平台凭据只从本机环境或系统密钥存储读取
 - 只有无法机械判断的任务才使用模型推理
 
 ## 文档可读性
@@ -82,6 +84,7 @@ python3 .agents/skills/taobao-price-research/scripts/freeze_core.py --check
 ## 安全边界
 
 - 不提交秘密、浏览器资料、会话状态、私人数据或未脱敏运行产物
+- 不把淘宝开放平台的 App Key App Secret 或推广位编号写入输入 输出 日志 测试 学习记录或仓库
 - 所有写入或破坏性外部操作都要求明确用户确认
 - 用户未明确要求时，不自动提交或推送学习和核心变化
 - 权限不明确、确认缺失或敏感信息出现时立即停止
