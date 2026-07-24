@@ -2,10 +2,7 @@ from __future__ import annotations
 
 import copy
 import datetime as dt
-import hashlib
-import hmac
 import json
-import os
 import subprocess
 import sys
 import tempfile
@@ -20,16 +17,6 @@ sys.path.insert(0, str(SKILL / "scripts"))
 from prepare_shortlist import build_shortlist  # noqa: E402
 from rank_offers import ranked_output  # noqa: E402
 from runtime_lib import read_json, validate_schema  # noqa: E402
-from top_api import (  # noqa: E402
-    DETAIL_METHOD,
-    SEARCH_METHOD,
-    TopClient,
-    TopApiUnavailable,
-    client_from_environment,
-    collect_candidates,
-    inspect_shortlist,
-    sign_parameters,
-)
 from validate_final import validate as validate_final  # noqa: E402
 from validate_inspection import validate as validate_inspection  # noqa: E402
 from validate_search_results import validate as validate_search_results  # noqa: E402
@@ -208,184 +195,7 @@ def sample_inspection() -> dict:
     }
 
 
-class FakeTopClient:
-    def call(self, method: str, parameters: dict) -> dict:
-        if method == SEARCH_METHOD:
-            if int(parameters["page_no"]) > 1:
-                records = []
-            else:
-                item_id = 200000 + len(str(parameters["q"]))
-                records = [
-                    {
-                        "item_id": f"new-{item_id}",
-                        "publish_info": {
-                            "click_url": (
-                                f"//item.taobao.com/item.htm?id={item_id}&spm=tracking"
-                            )
-                        },
-                        "price_promotion_info": {
-                            "zk_final_price": "6599",
-                            "final_promotion_price": "6499",
-                        },
-                        "item_basic_info": {
-                            "title": "RTX 5070 Ti 16GB 全新显卡 现货",
-                            "pict_url": "//img.alicdn.com/example.jpg",
-                            "shop_title": "显卡旗舰店",
-                            "volume": 88,
-                        },
-                    }
-                ]
-            return {
-                "tbk_dg_material_optional_upgrade_response": {
-                    "result_list": {"map_data": records}
-                }
-            }
-        if method == DETAIL_METHOD:
-            item_id = str(parameters["item_id"])
-            return {
-                "tbk_item_details_upgrade_get_response": {
-                    "results": {
-                        "tbk_item_detail": [
-                            {
-                                "item_id": item_id,
-                                "sku_list": {
-                                    "tbk_item_detail_sku": [
-                                        {
-                                            "property_list": {
-                                                "tbk_item_detail_sku_prop": [
-                                                    {
-                                                        "property_text": "规格",
-                                                        "value_text": "散热器支架",
-                                                    }
-                                                ]
-                                            },
-                                            "quantity": "100",
-                                            "sku_price_promotion_info": {
-                                                "sku_zk_final_price": "99"
-                                            },
-                                        },
-                                        {
-                                            "property_list": {
-                                                "tbk_item_detail_sku_prop": [
-                                                    {
-                                                        "property_text": "型号",
-                                                        "value_text": "RTX 5070 Ti",
-                                                    },
-                                                    {
-                                                        "property_text": "显存",
-                                                        "value_text": "16GB",
-                                                    },
-                                                ]
-                                            },
-                                            "quantity": "8",
-                                            "sku_price_promotion_info": {
-                                                "sku_zk_final_price": "6599"
-                                            },
-                                        },
-                                    ]
-                                },
-                                "price_promotion_info": {
-                                    "real_post_fee": "0",
-                                    "zk_final_price": "6599",
-                                },
-                                "item_basic_info": {
-                                    "title": "RTX 5070 Ti 16GB 全新显卡 现货",
-                                    "pict_url": "//img.alicdn.com/example.jpg",
-                                    "shop_title": "显卡旗舰店",
-                                    "user_type": 1,
-                                    "free_shipment": True,
-                                },
-                            }
-                        ]
-                    }
-                }
-            }
-        raise AssertionError(f"unexpected method {method}")
-
-
 class TaobaoDomainTests(unittest.TestCase):
-    def test_top_signature_matches_official_parameter_order(self) -> None:
-        parameters = {
-            "method": SEARCH_METHOD,
-            "app_key": "12345678",
-            "q": "RTX 5070 Ti",
-            "timestamp": "2026-07-24 12:00:00",
-        }
-        joined = "".join(f"{key}{value}" for key, value in sorted(parameters.items()))
-        expected = hmac.new(
-            b"example-secret",
-            joined.encode("utf-8"),
-            hashlib.sha256,
-        ).hexdigest().upper()
-        self.assertEqual(
-            expected,
-            sign_parameters(parameters, "example-secret", "hmac-sha256"),
-        )
-
-    def test_top_credentials_are_required_without_leaking_values(self) -> None:
-        with self.assertRaisesRegex(TopApiUnavailable, "TAOBAO_TOP_APP_KEY"):
-            client_from_environment({})
-
-    def test_top_api_error_redacts_credentials(self) -> None:
-        def transport(url: str, body: bytes, headers: dict, timeout: int) -> bytes:
-            return json.dumps(
-                {
-                    "error_response": {
-                        "sub_code": "invalid",
-                        "sub_msg": "bad app-123 secret-456 7654321",
-                    }
-                }
-            ).encode("utf-8")
-
-        client = TopClient(
-            "app-123",
-            "secret-456",
-            transport=transport,
-        )
-        with self.assertRaises(TopApiUnavailable) as captured:
-            client.call(SEARCH_METHOD, {"adzone_id": "7654321"})
-        message = str(captured.exception)
-        self.assertNotIn("app-123", message)
-        self.assertNotIn("secret-456", message)
-        self.assertNotIn("7654321", message)
-
-    def test_official_search_normalizes_and_validates_candidates(self) -> None:
-        plan = sample_plan()
-        result = collect_candidates(plan, FakeTopClient(), "12345678")
-        self.assertEqual([], validate_search_results(plan, result))
-        self.assertTrue(result["candidates"])
-        self.assertIn(
-            "官方接口只覆盖淘宝客可推广商品 不能代表淘宝全站在售商品",
-            result["coverage"]["blocked_reasons"],
-        )
-
-    def test_official_detail_rejects_accessory_sku_and_keeps_unknowns(self) -> None:
-        plan = sample_plan()
-        search = {
-            "plan": plan,
-            "coverage": {
-                "queries_executed": [plan["search"]["queries"][0]],
-                "pages_read": 1,
-                "cards_seen": 1,
-                "blocked_reasons": [],
-            },
-            "candidates": [
-                candidate(
-                    "api-good",
-                    "RTX 5070 Ti 16GB 全新显卡 现货",
-                    "6599",
-                    "200001",
-                )
-            ],
-        }
-        shortlist = build_shortlist(search)
-        inspection = inspect_shortlist(shortlist, FakeTopClient())
-        self.assertEqual([], validate_inspection(shortlist, inspection))
-        self.assertEqual("6599.00", inspection["offers"][0]["price_cny"])
-        self.assertIn("RTX 5070 Ti", inspection["offers"][0]["selected_sku"])
-        self.assertEqual("unknown", inspection["offers"][0]["fees_cny"])
-        self.assertFalse(inspection["offers"][0]["reviews"]["inspected"])
-
     def test_search_batch_preserves_plan_and_budgets(self) -> None:
         payload = sample_search_results()
         self.assertEqual([], validate_search_results(payload["plan"], payload))
@@ -464,21 +274,12 @@ class RunnerEndToEndTests(unittest.TestCase):
             str(SKILL / "scripts" / "runner.py"),
             *arguments,
         ]
-        environment = dict(os.environ)
-        for key in (
-            "TAOBAO_TOP_APP_KEY",
-            "TAOBAO_TOP_APP_SECRET",
-            "TAOBAO_TBK_ADZONE_ID",
-            "TAOBAO_TOP_SIGN_METHOD",
-        ):
-            environment.pop(key, None)
         completed = subprocess.run(
             command,
             cwd=ROOT,
             text=True,
             capture_output=True,
             check=False,
-            env=environment,
         )
         self.assertEqual(expect, completed.returncode, completed.stderr or completed.stdout)
         return json.loads(completed.stdout)
@@ -608,7 +409,7 @@ class RunnerEndToEndTests(unittest.TestCase):
             waiting = self.run_runner("advance", "--state-id", state_id)
             self.assertEqual("waiting-external", waiting["status"])
 
-    def test_runner_routes_host_policy_block_to_manual_handoff(self) -> None:
+    def test_runner_stops_on_host_policy_block(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
             directory = Path(raw)
             start = self.run_runner(
@@ -634,7 +435,7 @@ class RunnerEndToEndTests(unittest.TestCase):
                 str(self.write_json(directory, "plan.json", sample_plan())),
             )
             self.run_runner("advance", "--state-id", state_id)
-            fallback = self.run_runner(
+            failed = self.run_runner(
                 "fail",
                 "--state-id",
                 state_id,
@@ -644,11 +445,10 @@ class RunnerEndToEndTests(unittest.TestCase):
                 "policy-blocked",
                 "--message",
                 "宿主策略禁止淘宝页面访问",
+                expect=1,
             )
-            self.assertEqual("collect-candidates-api", fallback["node"]["id"])
-            waiting = self.run_runner("advance", "--state-id", state_id)
-            self.assertEqual("waiting-external", waiting["status"])
-            self.assertEqual("manual-handoff", waiting["node"]["id"])
+            self.assertEqual("failed", failed["status"])
+            self.assertEqual("policy-blocked", failed["error"]["kind"])
 
 
 if __name__ == "__main__":

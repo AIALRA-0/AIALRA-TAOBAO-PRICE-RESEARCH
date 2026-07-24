@@ -16,14 +16,10 @@ Skill 只执行读取和分析
 flowchart LR
     A["用户说明商品和约束"] --> B["Agent 整理研究计划"]
     B --> C["浏览器批量读取淘宝搜索结果"]
-    C -. "页面不可读" .-> D["淘宝官方接口发现候选"]
-    C --> E["脚本去重并生成详情候选"]
-    D --> E
-    E --> F["浏览器核验商品详情与评价"]
-    F -. "详情页不可读" .-> G["淘宝官方接口核验 SKU 价格和库存"]
-    F --> H["脚本复算成本 风险和赢家"]
-    G --> H
-    H --> I["Runner 检查通过后交付结果"]
+    C --> D["脚本去重并生成详情候选"]
+    D --> E["浏览器核验商品详情与评价"]
+    E --> F["脚本复算成本 风险和赢家"]
+    F --> G["Runner 检查通过后交付结果"]
 ```
 
 搜索结果卡片只能发现候选
@@ -48,45 +44,53 @@ flowchart LR
 
 确定性流程、外部节点提交、登录暂停、去重、详情证据校验、风险排名和最终赢家复算已经通过自动测试
 
-2026-07-24 的两次真实运行中，当前 Codex 浏览器安全策略分别禁止访问淘宝搜索页和淘宝首页
+2026-07-24 的真实运行中，当前 Codex 浏览器安全策略分别禁止访问淘宝搜索页和淘宝首页
 
 这次阻止发生在淘宝页面加载和登录之前
 
 用户是否已经登录不会改变这个宿主策略结果
 
-Runner 会先进入淘宝开放平台只读接口
+浏览器返回的关键原文是：
 
-用户尚未配置官方接口凭据时，Runner 再进入人工核验回退，返回官方淘宝搜索入口、明确标注未取得实时价格，并拒绝宣布最低价赢家
+```text
+Browser Use rejected this action due to browser security policy
+Browser use is not permitted on https://www.taobao.com
+The agent must not attempt the same outcome through alternate browser surfaces or policy circumvention
+```
 
-这个限制来自当前宿主浏览器策略
+桌面 Computer Use 读取 Codex 设置界面时也在动作发生前被拒绝：
 
-Skill 不会通过切换隐蔽工具、读取浏览器数据或使用搜索摘要绕过限制
+```text
+Computer Use is not allowed to use the app 'com.openai.codex' for safety reasons
+```
 
-在允许淘宝访问并由用户亲自完成登录的宿主中，继续执行正常搜索和详情节点
+Runner 现在会直接结束为 `failed`
 
-## 官方接口怎样接入
+失败结果不会生成接口替代价格、人工替代结果或最低价结论
 
-本版已经接入以下两个淘宝开放平台只读接口：
+## 怎样解除网站阻止
 
-- `taobao.tbk.dg.material.optional.upgrade` —— 浏览器搜索失败后发现候选商品
-- `taobao.tbk.item.details.upgrade.get` —— 浏览器详情失败后核验 SKU 价格、库存、邮费和图片
+内置浏览器：
 
-它们需要用户自己的 `App Key`、`App Secret` 和淘宝客推广位编号
+1. 打开 Codex 设置
+2. 进入 `Browser`
+3. 找到网站允许与阻止管理
+4. 从阻止列表移除 `taobao.com`
+5. 开始一个新的淘宝查价任务
+6. Codex 请求访问淘宝时选择本次允许或允许此网站
 
-它们只覆盖淘宝客可推广商品，不能代表淘宝全部在售商品
+Chrome 扩展：
 
-它们不提供评价正文、完整退货条件和完整保修信息
+1. 安装并启用 Codex 的 Chrome 插件
+2. 打开 Codex 设置
+3. 进入 `Computer Use`
+4. 在 Google Chrome 后选择 `Manage`
+5. 从阻止列表移除 `taobao.com`
+6. 在一个新任务中明确写 `使用 Chrome 打开淘宝并查价`
 
-Skill 会把这些限制写进覆盖缺口，不会把淘宝客结果包装成全站最低价真值
+网站已经被安全策略拒绝后，不能在同一次任务中切换到另一浏览器绕过拒绝
 
-完整准备步骤位于 [淘宝官方接口接入](.agents/skills/taobao-price-research/references/official-api.md)
-
-官方资料：
-
-- [淘宝客物料搜索升级版](https://developer.alibaba.com/docs/api.htm?apiId=64759)
-- [淘宝客商品详情升级版](https://developer.alibaba.com/docs/api.htm?apiId=64757)
-- [淘宝开放平台调用与签名规则](https://developer.alibaba.com/docs/doc.htm.htm?articleId=101617&docType=1&treeId=1)
-- [淘宝开放平台新手指南](https://developer.alibaba.com/docs/doc.htm?articleId=118395&docType=1&source=search&treeId=1)
+移除阻止后必须开始一次新任务，再由浏览器正常请求访问许可
 
 ## 最终结果包含什么
 
@@ -142,9 +146,7 @@ python3 .agents/skills/taobao-price-research/scripts/runner.py start --input inp
 
 宿主策略禁止页面访问时使用 `fail --kind policy-blocked`
 
-Runner 会自动尝试工作流中声明的淘宝官方接口节点
-
-官方接口凭据只能通过本机环境变量提供
+Runner 会直接结束为 `failed`
 
 只有 `status=completed` 才表示最终结果通过机器检查
 
@@ -163,19 +165,18 @@ python3 scripts/validate.py
 python3 .agents/skills/taobao-price-research/scripts/freeze_core.py --check
 ```
 
-测试覆盖正常完成、去重、排除错误商品、优惠计算、风险排名、虚假赢家拒绝、登录暂停、策略阻止回退、官方签名、官方响应规范化、凭据缺失回退和本地安装
+测试覆盖正常完成、去重、排除错误商品、优惠计算、风险排名、虚假赢家拒绝、登录暂停、策略阻止硬停止和本地安装
 
 ## 人工审计顺序
 
 1. 阅读本页 —— 先理解目标、边界和完整流程
 2. 阅读 `SKILL.md` —— 核对 Agent 必须遵守的运行协议
-3. 阅读 `workflow.yaml` —— 核对节点、执行器、预算、失败和回退路径
+3. 阅读 `workflow.yaml` —— 核对节点、执行器、预算和失败路径
 4. 阅读 `references/browser-collection.md` —— 核对页面采集字段与登录边界
-5. 阅读 `references/official-api.md` —— 核对官方接口能力 凭据位置和覆盖缺口
-6. 阅读 `references/risk-ranking.md` —— 核对风险分、成本公式和赢家规则
-7. 阅读 `schemas/` —— 核对每个阶段允许提交的数据
-8. 阅读领域脚本 —— 核对去重、官方接口、详情校验、成本计算和最终复算
-9. 阅读 `tests/test_taobao_domain.py` —— 用具体案例确认规则真的生效
-10. 阅读 `SECURITY.md` —— 最后核对凭据、隐私和外部副作用
+5. 阅读 `references/risk-ranking.md` —— 核对风险分、成本公式和赢家规则
+6. 阅读 `schemas/` —— 核对每个阶段允许提交的数据
+7. 阅读领域脚本 —— 核对去重、详情校验、成本计算和最终复算
+8. 阅读 `tests/test_taobao_domain.py` —— 用具体案例确认规则真的生效
+9. 阅读 `SECURITY.md` —— 最后核对凭据、隐私和外部副作用
 
 完成这个顺序后，你能够理解一次淘宝查价怎样从用户请求变成可复核结论
