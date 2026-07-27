@@ -53,10 +53,16 @@ def sample_plan() -> dict:
                 "5070Ti 16G 全新显卡",
                 "GeForce RTX5070Ti 现货",
             ],
-            "pages_per_query": 2,
-            "candidate_limit": 60,
-            "detail_limit": 12,
-            "review_limit": 5,
+            "pages_per_query": 1,
+            "candidate_limit": 45,
+            "detail_limit": 8,
+            "review_limit": 3,
+            "pacing": {
+                "maximum_parallel_pages": 1,
+                "minimum_action_interval_seconds": 3,
+                "risk_event_retries": 0,
+                "reuse_observation_cache_seconds": 900,
+            },
         },
         "assumptions": ["未提供会员权益 按公开价处理"],
     }
@@ -265,6 +271,19 @@ class TaobaoDomainTests(unittest.TestCase):
         effects = {node["side_effect"] for node in workflow["execution"]["graph"]["nodes"]}
         self.assertLessEqual(effects, {"none", "read"})
         self.assertTrue(workflow["definition"]["configured"])
+        browser_nodes = [
+            node
+            for node in workflow["execution"]["graph"]["nodes"]
+            if node["executor"] == "browser-dom"
+        ]
+        self.assertTrue(browser_nodes)
+        for node in browser_nodes:
+            arguments = node["action"]["arguments"]
+            self.assertEqual(1, arguments["parallelism_hint"])
+            self.assertGreaterEqual(arguments["minimum_action_interval_seconds"], 3)
+            self.assertEqual(0, arguments["risk_event_retries"])
+            self.assertGreaterEqual(arguments["reuse_observation_cache_seconds"], 900)
+            self.assertEqual(0, node["max_retries"])
 
 
 class RunnerEndToEndTests(unittest.TestCase):

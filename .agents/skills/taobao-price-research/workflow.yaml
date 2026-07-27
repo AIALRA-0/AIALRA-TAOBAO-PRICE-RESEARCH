@@ -21,12 +21,12 @@
             "name": "taobao.interpret-request",
             "arguments": {
               "input_source": "node-input",
-              "query_variant_limit": 4,
-              "default_result_pages_per_query": 2,
-              "default_detail_limit": 12,
-              "default_review_limit": 5
+              "query_variant_limit": 3,
+              "default_result_pages_per_query": 1,
+              "default_detail_limit": 8,
+              "default_review_limit": 3
             },
-            "instructions": "Preserve the requested product identity and constraints; create two to four distinct Taobao search queries; declare required and excluded terms; use only city-level destination data; keep every collection limit within the declared maximum"
+            "instructions": "Preserve the requested product identity and constraints; create two to three distinct Taobao search queries; declare required and excluded terms; use only city-level destination data; set pacing to one page at a time, at least three seconds between automatic actions, zero retries after any risk event and a fifteen-minute observation cache; keep every collection limit within the declared maximum"
           },
           "side_effect": "none",
           "requires_confirmation": false,
@@ -56,17 +56,20 @@
                 "detail.tmall.com"
               ],
               "read_only": true,
-              "parallelism_hint": 3,
-              "maximum_queries": 4,
-              "maximum_pages_per_query": 3,
-              "maximum_candidates": 80
+              "parallelism_hint": 1,
+              "minimum_action_interval_seconds": 3,
+              "risk_event_retries": 0,
+              "reuse_observation_cache_seconds": 900,
+              "maximum_queries": 3,
+              "maximum_pages_per_query": 1,
+              "maximum_candidates": 45
             },
-            "instructions": "Use a logged-in browser when available; execute every planned query within budget; collect visible product cards in bounded batches; capture title, displayed price range, seller, sales text, image, URL, query and page; do not treat a card as verified detail evidence"
+            "instructions": "Use the current logged-in browser session; execute planned queries sequentially in one page; wait at least three seconds between automatic actions; reuse observations from the current run instead of repeating a query; collect visible product cards in bounded batches; capture title, displayed price range, seller, sales text, image, URL, query and page; do not treat a card as verified detail evidence"
           },
           "side_effect": "read",
           "requires_confirmation": false,
           "timeout_seconds": 900,
-          "max_retries": 1,
+          "max_retries": 0,
           "validator": [
             "python3",
             "scripts/validate_search_results.py",
@@ -121,17 +124,20 @@
                 "detail.tmall.com"
               ],
               "read_only": true,
-              "parallelism_hint": 3,
-              "maximum_details": 20,
-              "maximum_review_inspections": 8,
+              "parallelism_hint": 1,
+              "minimum_action_interval_seconds": 3,
+              "risk_event_retries": 0,
+              "reuse_observation_cache_seconds": 900,
+              "maximum_details": 8,
+              "maximum_review_inspections": 3,
               "maximum_images_per_offer": 4
             },
-            "instructions": "Open every shortlisted URL within budget; select or identify the requested SKU without committing any account action; capture direct-page price, shipping, verified discounts, stock, seller indicators, image URLs, review summary, warranty and return evidence; record per-item failures and never infer missing values"
+            "instructions": "Open shortlisted URLs sequentially in the same page and within budget; wait at least three seconds between automatic actions; reuse details already observed during the current run; select or identify the requested SKU without committing any account action; capture direct-page price, shipping, verified discounts, stock, seller indicators, image URLs, review summary, warranty and return evidence; record per-item failures and never infer missing values"
           },
           "side_effect": "read",
           "requires_confirmation": false,
           "timeout_seconds": 1200,
-          "max_retries": 1,
+          "max_retries": 0,
           "validator": [
             "python3",
             "scripts/validate_inspection.py",

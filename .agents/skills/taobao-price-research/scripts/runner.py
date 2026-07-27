@@ -250,8 +250,12 @@ def handle_failure(
         state["retries"][node["id"]] = retries + 1
         state["status"] = "running"
         return
+    if kind == "policy-blocked":
+        state["status"] = "failed"
+        state["failed_at"] = now_iso()
+        return
     fallback = node.get("fallback")
-    if kind in {"retryable", "fallback", "policy-blocked"} and fallback:
+    if kind in {"retryable", "fallback"} and fallback:
         state["current_node"] = fallback
         state["status"] = "running"
         return

@@ -135,13 +135,14 @@
         "pages_per_query",
         "candidate_limit",
         "detail_limit",
-        "review_limit"
+        "review_limit",
+        "pacing"
       ],
       "properties": {
         "queries": {
           "type": "array",
           "minItems": 2,
-          "maxItems": 4,
+          "maxItems": 3,
           "items": {
             "type": "string",
             "minLength": 2,
@@ -151,22 +152,50 @@
         "pages_per_query": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 3
+          "maximum": 1
         },
         "candidate_limit": {
           "type": "integer",
           "minimum": 10,
-          "maximum": 80
+          "maximum": 45
         },
         "detail_limit": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 20
+          "maximum": 8
         },
         "review_limit": {
           "type": "integer",
           "minimum": 0,
-          "maximum": 8
+          "maximum": 3
+        },
+        "pacing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "maximum_parallel_pages",
+            "minimum_action_interval_seconds",
+            "risk_event_retries",
+            "reuse_observation_cache_seconds"
+          ],
+          "properties": {
+            "maximum_parallel_pages": {
+              "const": 1
+            },
+            "minimum_action_interval_seconds": {
+              "type": "number",
+              "minimum": 3,
+              "maximum": 10
+            },
+            "risk_event_retries": {
+              "const": 0
+            },
+            "reuse_observation_cache_seconds": {
+              "type": "integer",
+              "minimum": 900,
+              "maximum": 3600
+            }
+          }
         }
       }
     },
