@@ -297,6 +297,22 @@ class TaobaoDomainTests(unittest.TestCase):
                 ["aialra-shopping-browser"],
                 arguments["source_routing"]["provider_order"],
             )
+            routing = arguments["source_routing"]
+            self.assertEqual(
+                {"provider_order", "providers", "selection_policy"},
+                set(routing),
+            )
+            provider = routing["providers"]["aialra-shopping-browser"]
+            self.assertEqual("mcp", provider["kind"])
+            self.assertEqual("aialra-shopping-browser", provider["identifier"])
+            self.assertEqual(
+                "current-node-output",
+                provider["evidence_contract"]["node_output_schema"],
+            )
+            self.assertIn(
+                "policy-blocked",
+                routing["selection_policy"]["hard_stop_kinds"],
+            )
 
 
 class RunnerEndToEndTests(unittest.TestCase):
