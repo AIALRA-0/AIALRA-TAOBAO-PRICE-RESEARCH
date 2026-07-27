@@ -58,12 +58,15 @@ def build_shortlist(payload: dict[str, Any]) -> dict[str, Any]:
             duplicates += 1
             if query not in existing["matched_queries"]:
                 existing["matched_queries"].append(query)
+            if candidate["source_backend"] not in existing["source_backends"]:
+                existing["source_backends"].append(candidate["source_backend"])
             if price_min < parse_money(existing["displayed_price_min"]):
                 existing["displayed_price_min"] = candidate["displayed_price_min"]
                 existing["displayed_price_max"] = candidate["displayed_price_max"]
             continue
         unique[key] = {
             "candidate_id": candidate["candidate_id"],
+            "source_backends": [candidate["source_backend"]],
             "title": candidate["title"],
             "displayed_price_min": candidate["displayed_price_min"],
             "displayed_price_max": candidate["displayed_price_max"],

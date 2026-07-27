@@ -15,6 +15,7 @@
       "additionalProperties": false,
       "required": [
         "queries_executed",
+        "source_backend",
         "pages_read",
         "cards_seen",
         "shortlisted",
@@ -33,6 +34,9 @@
             "minLength": 2,
             "maxLength": 200
           }
+        },
+        "source_backend": {
+          "const": "aialra-shopping-browser"
         },
         "pages_read": {
           "type": "integer",
@@ -93,6 +97,8 @@
         "additionalProperties": false,
         "required": [
           "offer_id",
+          "search_backends",
+          "detail_backend",
           "title",
           "url",
           "image_urls",
@@ -122,6 +128,18 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 80
+          },
+          "search_backends": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "const": "aialra-shopping-browser"
+            }
+          },
+          "detail_backend": {
+            "const": "aialra-shopping-browser"
           },
           "title": {
             "type": "string",

@@ -45,11 +45,33 @@
           "id": "collect-candidates",
           "input_schema": "schemas/research-plan.schema.json",
           "output_schema": "schemas/search-results.schema.json",
-          "executor": "browser-dom",
+          "executor": "mcp",
           "action": {
             "name": "taobao.search-batch",
             "arguments": {
               "input_source": "node-input",
+              "source_routing": {
+                "provider_order": [
+                  "aialra-shopping-browser"
+                ],
+                "aialra_shopping_browser": {
+                  "mode": "required-when-installed-and-loaded",
+                  "mcp_server": "aialra-shopping-browser",
+                  "skill": "shopping-browser-research",
+                  "required_observation_schema": "schemas/observation.schema.json",
+                  "allowed_operation_classes": [
+                    "navigation-read",
+                    "search-read",
+                    "snapshot-read",
+                    "screenshot-read"
+                  ],
+                  "prohibited_operation_classes": [
+                    "account-write",
+                    "credential-read",
+                    "content-write"
+                  ]
+                }
+              },
               "allowed_hosts": [
                 "s.taobao.com",
                 "item.taobao.com",
@@ -64,7 +86,7 @@
               "maximum_pages_per_query": 1,
               "maximum_candidates": 45
             },
-            "instructions": "Use the current logged-in browser session; execute planned queries sequentially in one page; wait at least three seconds between automatic actions; reuse observations from the current run instead of repeating a query; collect visible product cards in bounded batches; capture title, displayed price range, seller, sales text, image, URL, query and page; do not treat a card as verified detail evidence"
+            "instructions": "Use the loaded aialra-shopping-browser MCP and its independent persistent Chrome profile; validate every external observation with the plugin common observation schema before mapping it to this node schema; execute planned queries sequentially in one page; wait at least three seconds between automatic actions; reuse observations from the current run instead of repeating a query; collect visible product cards in bounded batches; record source_backend as aialra-shopping-browser and capture title, displayed price range, seller, sales text, image, URL, query and page; do not treat a card as verified detail evidence"
           },
           "side_effect": "read",
           "requires_confirmation": false,
@@ -114,11 +136,34 @@
           "id": "inspect-details",
           "input_schema": "schemas/shortlist.schema.json",
           "output_schema": "schemas/inspection.schema.json",
-          "executor": "browser-dom",
+          "executor": "mcp",
           "action": {
             "name": "taobao.inspect-detail-batch",
             "arguments": {
               "input_source": "node-input",
+              "source_routing": {
+                "provider_order": [
+                  "aialra-shopping-browser"
+                ],
+                "aialra_shopping_browser": {
+                  "mode": "reuse-selected-backend",
+                  "mcp_server": "aialra-shopping-browser",
+                  "skill": "shopping-browser-research",
+                  "required_observation_schema": "schemas/observation.schema.json",
+                  "allowed_operation_classes": [
+                    "navigation-read",
+                    "snapshot-read",
+                    "detail-read",
+                    "review-read",
+                    "screenshot-read"
+                  ],
+                  "prohibited_operation_classes": [
+                    "account-write",
+                    "credential-read",
+                    "content-write"
+                  ]
+                }
+              },
               "allowed_hosts": [
                 "item.taobao.com",
                 "detail.tmall.com"
@@ -132,7 +177,7 @@
               "maximum_review_inspections": 3,
               "maximum_images_per_offer": 4
             },
-            "instructions": "Open shortlisted URLs sequentially in the same page and within budget; wait at least three seconds between automatic actions; reuse details already observed during the current run; select or identify the requested SKU without committing any account action; capture direct-page price, shipping, verified discounts, stock, seller indicators, image URLs, review summary, warranty and return evidence; record per-item failures and never infer missing values"
+            "instructions": "Reuse the selected aialra-shopping-browser backend; validate every external observation with the plugin common observation schema before mapping it to this node schema; open shortlisted URLs sequentially in the same page and within budget; wait at least three seconds between automatic actions; reuse details already observed during the current run; select or identify the requested SKU without committing any account action; preserve search_backends and record detail_backend as aialra-shopping-browser; capture direct-page price, shipping, verified discounts, stock, seller indicators, image URLs, review summary, warranty and return evidence; record per-item failures and never infer missing values"
           },
           "side_effect": "read",
           "requires_confirmation": false,

@@ -19,6 +19,8 @@ def validate(plan: dict, result: dict) -> list[str]:
     search = require_object(plan.get("search"), "plan.search")
     planned_queries = require_list(search.get("queries"), "plan.search.queries")
     coverage = require_object(result.get("coverage"), "output.coverage")
+    if coverage.get("source_backend") != "aialra-shopping-browser":
+        errors.append("coverage.source_backend must be aialra-shopping-browser")
     executed = require_list(coverage.get("queries_executed"), "coverage.queries_executed")
     if not executed:
         errors.append("at least one planned query must be executed")
@@ -41,6 +43,8 @@ def validate(plan: dict, result: dict) -> list[str]:
         if identifier in identifiers:
             errors.append(f"{label}.candidate_id is duplicated")
         identifiers.add(identifier)
+        if candidate.get("source_backend") != coverage.get("source_backend"):
+            errors.append(f"{label}.source_backend must match coverage.source_backend")
         if candidate.get("query") not in executed:
             errors.append(f"{label}.query was not executed")
         if canonical_item_url(candidate.get("url")) is None:

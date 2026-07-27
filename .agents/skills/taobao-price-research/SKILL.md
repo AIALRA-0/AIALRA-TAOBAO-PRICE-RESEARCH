@@ -44,9 +44,9 @@ Runner 会依次返回以下节点
 | 节点 | 任务 | 执行方式 |
 |---|---|---|
 | `interpret-request` | 把自然语言整理为商品身份、排除词、搜索词和采集预算 | reasoning |
-| `collect-candidates` | 在登录浏览器中批量读取搜索结果卡片 | browser-dom |
+| `collect-candidates` | 在独立已登录 Chrome 中批量读取搜索结果卡片 | mcp |
 | `prepare-shortlist` | 规范链接、去重、排除明显错误结果并生成详情候选 | script |
-| `inspect-details` | 打开入围商品页并核验目标 SKU、店铺、图片、评价和成本 | browser-dom |
+| `inspect-details` | 打开入围商品页并核验目标 SKU、店铺、图片、评价和成本 | mcp |
 | `rank-offers` | 计算已知总额、风险分、可行性和最终排名 | script |
 
 浏览器搜索或详情读取失败时，Runner 直接结束为 `failed`
@@ -55,15 +55,15 @@ Runner 会依次返回以下节点
 
 ## 浏览器节点怎样执行
 
-先读取 [浏览器采集协议](references/browser-collection.md)
+先读取 [浏览器后端路由](references/backend-routing.md) 和 [浏览器采集协议](references/browser-collection.md)
 
-在第一次访问淘宝之前选择一个受支持的浏览器控制面
+当前任务必须已经加载 `aialra-shopping-browser` MCP
 
-用户明确指定 Chrome 时使用 Chrome 扩展
+使用它启动的独立持久 Chrome，不连接用户日常 Chrome
 
-用户没有指定浏览器时让浏览器运行时按照目标网址选择控制面
+外部观察先通过插件的通用观察 Schema，再映射为当前淘宝节点输出 Schema
 
-浏览器控制面确定后保持不变
+浏览器后端在第一次访问淘宝前确定，开始访问后保持不变
 
 每次只执行 Runner 返回的当前动作，并遵守动作中的数量上限
 
@@ -85,13 +85,13 @@ python3 scripts/runner.py fail \
 
 用户完成后调用 `runner.py resume`
 
-不要读取浏览器 Cookie、本地存储、密码库或历史记录
+不要读取浏览器 Cookie、本地存储、密码库、历史记录或存储状态
 
 宿主安全策略明确禁止访问淘宝页面时使用 `policy-blocked`
 
 Runner 会直接返回 `failed`
 
-不要在同一次受阻任务中改用 Chrome、Computer Use、脚本、接口或其他数据来源绕过拒绝
+不要在同一次受阻任务中改用内置浏览器、Chrome 扩展、Computer Use、脚本、接口或其他数据来源绕过拒绝
 
 ## 外部结果怎样提交
 

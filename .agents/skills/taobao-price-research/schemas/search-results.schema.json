@@ -15,6 +15,7 @@
       "additionalProperties": false,
       "required": [
         "queries_executed",
+        "source_backend",
         "pages_read",
         "cards_seen",
         "blocked_reasons"
@@ -28,6 +29,9 @@
             "minLength": 2,
             "maxLength": 200
           }
+        },
+        "source_backend": {
+          "const": "aialra-shopping-browser"
         },
         "pages_read": {
           "type": "integer",
@@ -59,6 +63,7 @@
         "additionalProperties": false,
         "required": [
           "candidate_id",
+          "source_backend",
           "query",
           "page_number",
           "title",
@@ -75,6 +80,9 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 80
+          },
+          "source_backend": {
+            "const": "aialra-shopping-browser"
           },
           "query": {
             "type": "string",

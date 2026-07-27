@@ -57,7 +57,8 @@ python3 .agents/skills/taobao-price-research/scripts/freeze_core.py --check
 - 结构化外部操作直接使用 MCP
 - 网页结构可靠时使用浏览器 DOM
 - 缺少结构化操作时才使用 Computer Use
-- 淘宝浏览器控制面在第一次访问前确定并在本次运行中保持不变
+- 淘宝网页只使用已经安装并加载的 `AIALRA Shopping Browser` MCP
+- 浏览器后端在第一次访问前确定并在本次运行中保持不变
 - 宿主策略拒绝淘宝网址时停止本次运行，不切换工具或数据源绕过拒绝
 - `policy-blocked` 是硬停止，不能进入回退、重试或更换执行面
 - 搜索和详情使用单页面串行读取，相邻自动动作至少间隔三秒

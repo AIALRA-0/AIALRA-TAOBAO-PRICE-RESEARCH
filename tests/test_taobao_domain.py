@@ -77,6 +77,7 @@ def candidate(
 ) -> dict:
     return {
         "candidate_id": identifier,
+        "source_backend": "aialra-shopping-browser",
         "query": query,
         "page_number": 1,
         "title": title,
@@ -108,6 +109,7 @@ def sample_search_results() -> dict:
         "plan": plan,
         "coverage": {
             "queries_executed": plan["search"]["queries"][:2],
+            "source_backend": "aialra-shopping-browser",
             "pages_read": 2,
             "cards_seen": 4,
             "blocked_reasons": [],
@@ -128,6 +130,8 @@ def offer(
 ) -> dict:
     return {
         "offer_id": offer_id,
+        "search_backends": ["aialra-shopping-browser"],
+        "detail_backend": "aialra-shopping-browser",
         "title": f"RTX 5070 Ti 16GB 全新显卡 {offer_id}",
         "url": f"https://item.taobao.com/item.htm?id={offer_id.removeprefix('o')}",
         "image_urls": ["https://img.alicdn.com/example.jpg"],
@@ -188,6 +192,7 @@ def sample_inspection() -> dict:
         "plan": plan,
         "coverage": {
             "queries_executed": plan["search"]["queries"][:2],
+            "source_backend": "aialra-shopping-browser",
             "pages_read": 2,
             "cards_seen": 20,
             "shortlisted": 4,
@@ -217,6 +222,10 @@ class TaobaoDomainTests(unittest.TestCase):
         self.assertEqual(
             "https://item.taobao.com/item.htm?id=100003",
             result["shortlist"][0]["url"],
+        )
+        self.assertEqual(
+            ["aialra-shopping-browser"],
+            result["shortlist"][0]["source_backends"],
         )
 
     def test_inspection_requires_direct_fresh_evidence(self) -> None:
@@ -274,7 +283,7 @@ class TaobaoDomainTests(unittest.TestCase):
         browser_nodes = [
             node
             for node in workflow["execution"]["graph"]["nodes"]
-            if node["executor"] == "browser-dom"
+            if node["executor"] == "mcp"
         ]
         self.assertTrue(browser_nodes)
         for node in browser_nodes:
@@ -284,6 +293,10 @@ class TaobaoDomainTests(unittest.TestCase):
             self.assertEqual(0, arguments["risk_event_retries"])
             self.assertGreaterEqual(arguments["reuse_observation_cache_seconds"], 900)
             self.assertEqual(0, node["max_retries"])
+            self.assertEqual(
+                ["aialra-shopping-browser"],
+                arguments["source_routing"]["provider_order"],
+            )
 
 
 class RunnerEndToEndTests(unittest.TestCase):

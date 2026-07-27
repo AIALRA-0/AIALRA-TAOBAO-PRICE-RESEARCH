@@ -38,6 +38,10 @@ def validate(result: dict) -> list[str]:
             errors.append(f"{label}.offer_id is duplicated")
         seen.add(offer_id)
         ranks.append(offer.get("rank"))
+        if offer.get("search_backends") != ["aialra-shopping-browser"]:
+            errors.append(f"{label}.search_backends must preserve aialra-shopping-browser")
+        if offer.get("detail_backend") != "aialra-shopping-browser":
+            errors.append(f"{label}.detail_backend must be aialra-shopping-browser")
         if canonical_item_url(offer.get("url")) != offer.get("url"):
             errors.append(f"{label}.url is not canonical")
         if parse_money(offer.get("price_cny")) is None:
@@ -92,6 +96,9 @@ def validate(result: dict) -> list[str]:
     for index, url in enumerate(require_list(result.get("manual_search_urls"), "manual_search_urls")):
         if not isinstance(url, str) or not url.startswith("https://s.taobao.com/search?"):
             errors.append(f"manual_search_urls[{index}] is not an official Taobao search URL")
+    coverage = require_object(result.get("coverage"), "coverage")
+    if coverage.get("source_backend") != "aialra-shopping-browser":
+        errors.append("coverage.source_backend must be aialra-shopping-browser")
     return errors
 
 

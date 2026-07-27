@@ -128,6 +128,8 @@ def ranked_output(payload: dict[str, Any]) -> dict[str, Any]:
             {
                 "rank": 1,
                 "offer_id": offer["offer_id"],
+                "search_backends": offer["search_backends"],
+                "detail_backend": offer["detail_backend"],
                 "title": offer["title"],
                 "selected_sku": offer["selected_sku"],
                 "seller_name": offer["seller"]["name"],
@@ -217,6 +219,7 @@ def ranked_output(payload: dict[str, Any]) -> dict[str, Any]:
         "coverage": {
             "queries_planned": search["queries"],
             "queries_executed": coverage_source["queries_executed"],
+            "source_backend": coverage_source["source_backend"],
             "pages_read": coverage_source["pages_read"],
             "cards_seen": coverage_source["cards_seen"],
             "shortlisted": coverage_source["shortlisted"],

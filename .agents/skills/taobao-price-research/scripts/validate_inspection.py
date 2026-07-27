@@ -21,7 +21,12 @@ def validate(shortlist: dict, inspection: dict) -> list[str]:
         errors.append("inspection.plan must exactly preserve shortlist.plan")
         return errors
     source_items = require_list(shortlist.get("shortlist"), "shortlist.shortlist")
-    source_ids = {item.get("candidate_id") for item in source_items if isinstance(item, dict)}
+    source_by_id = {
+        item.get("candidate_id"): item
+        for item in source_items
+        if isinstance(item, dict)
+    }
+    source_ids = set(source_by_id)
     plan = require_object(shortlist.get("plan"), "shortlist.plan")
     search = require_object(plan.get("search"), "plan.search")
     coverage = require_object(inspection.get("coverage"), "inspection.coverage")
@@ -45,6 +50,11 @@ def validate(shortlist: dict, inspection: dict) -> list[str]:
         if offer_id in offer_ids:
             errors.append(f"{label}.offer_id is duplicated")
         offer_ids.add(offer_id)
+        source = source_by_id.get(offer_id)
+        if source is not None and offer.get("search_backends") != source.get("source_backends"):
+            errors.append(f"{label}.search_backends must preserve shortlist source_backends")
+        if offer.get("detail_backend") != "aialra-shopping-browser":
+            errors.append(f"{label}.detail_backend must be aialra-shopping-browser")
         canonical = canonical_item_url(offer.get("url"))
         if canonical is None or canonical != offer.get("url"):
             errors.append(f"{label}.url must be a canonical direct item URL")
@@ -64,6 +74,8 @@ def validate(shortlist: dict, inspection: dict) -> list[str]:
         errors.append("reviews_inspected must equal offers with inspected reviews")
     if inspected_reviews > search.get("review_limit", 0):
         errors.append("review inspection count exceeds review_limit")
+    if coverage.get("source_backend") != "aialra-shopping-browser":
+        errors.append("coverage.source_backend must be aialra-shopping-browser")
     return errors
 
 
