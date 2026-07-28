@@ -18,7 +18,7 @@
     ".agents/skills/taobao-price-research/scripts/prepare_shortlist.py": "ebdfc2e148b359f8aabd5d4afe537d8167232fac16084b1c34207fa02da78a4a",
     ".agents/skills/taobao-price-research/scripts/promote.py": "a68003a16738141752db61106c8fafee31b001ae9e9ad8466ebe4747d1faa103",
     ".agents/skills/taobao-price-research/scripts/rank_offers.py": "696fbdb4f9a1b7c850cdc25367bc020f4e5328170f912a1c83181aba808bdccd",
-    ".agents/skills/taobao-price-research/scripts/runner.py": "267962092de29452dcac917b6676f21fe2c346dd0ae0911086990d2ddeefdf8a",
+    ".agents/skills/taobao-price-research/scripts/runner.py": "afd479afcf6d852201109b2906fa4f0039925f06dcba52cb43b3de954ce7483e",
     ".agents/skills/taobao-price-research/scripts/runtime_lib.py": "0dafaa787698c80ff7fb88dac5a88e0be8da086d67ffc7a15276b6f51152cb7d",
     ".agents/skills/taobao-price-research/scripts/validate_final.py": "510d8847210f377c43cac8187781a712e22f0a05a3446d4216504a513a5661a2",
     ".agents/skills/taobao-price-research/scripts/validate_inspection.py": "fb77e7abe437c9dc7d283ea91eac1fc6c36446cac3183d09dce3b73151f5af8e",
@@ -30,12 +30,12 @@
     ".pre-commit-config.yaml": "721f006af8f50751b68c7ac00cad81d44cf57cb7296403916eeb17a760f25643",
     "AGENTS.md": "2baa4697299f0f03b89049b029e7b112f9aacace99d02828e9525373ff782cc6",
     "SECURITY.md": "4bb9234848dbdc351444b0894e901f2f8cda167e12a18491ec042227ee5752d3",
-    "VERSION": "aba951626c8690ce493cbc8f018205bb468003f61fbf00fd3d3c71cebabc0177",
+    "VERSION": "26e0ab83aa1ff6bd0ae3882787a92663aa19db128e1241ffc99375fb9ca0c121",
     "scripts/check_secrets.py": "ac9d3ffc77761524984947c074495fd74120e4f9ecb657d4b37af145703808cc",
     "scripts/install_local.py": "e5ab3d37dcb6e1a4eef8bd28b848326fe4477735e3bb5c56c8e7f8775a946814",
     "scripts/validate.py": "bd6ff45c47651e415f25cd26db712f4da73606f4723e2ff8f8f58077d5f29f5e"
   },
   "format_version": 1,
   "skill_name": "taobao-price-research",
-  "skill_version": "0.5.1"
+  "skill_version": "0.5.2"
 }

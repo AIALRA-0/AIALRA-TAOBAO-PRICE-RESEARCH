@@ -39,6 +39,81 @@ def now_iso() -> str:
     return dt.datetime.now(dt.timezone.utc).isoformat()
 
 
+def parse_iso(value: Any) -> dt.datetime:
+    if not isinstance(value, str):
+        raise RuntimeErrorDetail("Runtime timing contains an invalid timestamp")
+    try:
+        parsed = dt.datetime.fromisoformat(value)
+    except ValueError as exc:
+        raise RuntimeErrorDetail("Runtime timing contains an invalid timestamp") from exc
+    if parsed.tzinfo is None:
+        raise RuntimeErrorDetail("Runtime timing timestamp must include a timezone")
+    return parsed.astimezone(dt.timezone.utc)
+
+
+def ensure_timing(state: dict[str, Any]) -> dict[str, Any]:
+    timing = state.get("timing")
+    if isinstance(timing, dict):
+        elapsed = timing.get("active_elapsed_seconds")
+        active_since = timing.get("active_since")
+        if (
+            isinstance(elapsed, (int, float))
+            and not isinstance(elapsed, bool)
+            and elapsed >= 0
+            and (active_since is None or isinstance(active_since, str))
+        ):
+            if active_since is not None:
+                parse_iso(active_since)
+            return timing
+    active_since = now_iso() if state.get("status") == "running" else None
+    timing = {
+        "active_elapsed_seconds": 0.0,
+        "active_since": active_since,
+    }
+    state["timing"] = timing
+    append_trace(
+        state,
+        "runtime-timing-initialized",
+        mode="legacy-compatible",
+        at=now_iso(),
+    )
+    return timing
+
+
+def start_active_timer(state: dict[str, Any], *, at: str | None = None) -> None:
+    timing = ensure_timing(state)
+    if timing["active_since"] is None:
+        timing["active_since"] = at or now_iso()
+
+
+def pause_active_timer(state: dict[str, Any], *, at: str | None = None) -> None:
+    timing = ensure_timing(state)
+    active_since = timing["active_since"]
+    if active_since is None:
+        return
+    stopped_at = parse_iso(at or now_iso())
+    elapsed = max(0.0, (stopped_at - parse_iso(active_since)).total_seconds())
+    timing["active_elapsed_seconds"] = round(
+        float(timing["active_elapsed_seconds"]) + elapsed,
+        6,
+    )
+    timing["active_since"] = None
+
+
+def active_elapsed_seconds(state: dict[str, Any]) -> float:
+    timing = ensure_timing(state)
+    elapsed = float(timing["active_elapsed_seconds"])
+    if timing["active_since"] is not None:
+        elapsed += max(
+            0.0,
+            (
+                dt.datetime.now(dt.timezone.utc)
+                - parse_iso(timing["active_since"])
+            ).total_seconds(),
+        )
+    return elapsed
+
+
 def node_map(workflow: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return {node["id"]: node for node in workflow["execution"]["graph"]["nodes"]}
 
@@ -234,10 +309,12 @@ def accept_output(
         state["status"] = "completed"
         state["final_output"] = output
         state["completed_at"] = now_iso()
+        pause_active_timer(state, at=state["completed_at"])
         append_trace(state, "workflow-completed", at=state["completed_at"])
     else:
         state["current_node"] = target
         state["status"] = "running"
+        start_active_timer(state)
 
 
 def handle_failure(
@@ -249,29 +326,33 @@ def handle_failure(
     if kind == "retryable" and retries < node["max_retries"]:
         state["retries"][node["id"]] = retries + 1
         state["status"] = "running"
+        start_active_timer(state)
         return
     if kind == "policy-blocked":
         state["status"] = "failed"
         state["failed_at"] = now_iso()
+        pause_active_timer(state, at=state["failed_at"])
         return
     fallback = node.get("fallback")
     if kind in {"retryable", "fallback"} and fallback:
         state["current_node"] = fallback
         state["status"] = "running"
+        start_active_timer(state)
         return
     if kind == "user-required":
         state["status"] = "waiting-user"
+        pause_active_timer(state)
         return
     state["status"] = "failed"
     state["failed_at"] = now_iso()
+    pause_active_timer(state, at=state["failed_at"])
 
 
 def check_limits(state: dict[str, Any], workflow: dict[str, Any]) -> None:
     limits = workflow["execution"]["limits"]
     if state["steps_executed"] >= limits["max_nodes"]:
         raise RuntimeErrorDetail("Workflow exceeded execution.limits.max_nodes")
-    started = dt.datetime.fromisoformat(state["started_at"])
-    elapsed = (dt.datetime.now(dt.timezone.utc) - started).total_seconds()
+    elapsed = active_elapsed_seconds(state)
     if elapsed > limits["total_timeout_seconds"]:
         raise RuntimeErrorDetail("Workflow exceeded execution.limits.total_timeout_seconds")
 
@@ -302,8 +383,13 @@ def start(args: argparse.Namespace) -> dict[str, Any]:
         "steps_executed": 0,
         "last_error": None,
         "started_at": now_iso(),
+        "timing": {
+            "active_elapsed_seconds": 0.0,
+            "active_since": None,
+        },
         "trace": [],
     }
+    start_active_timer(state, at=state["started_at"])
     append_trace(state, "workflow-started", node_id=state["current_node"], at=state["started_at"])
     save_state(root, state)
     return directive(root, state, workflow)
@@ -338,11 +424,13 @@ def advance(args: argparse.Namespace) -> dict[str, Any]:
         if node["requires_confirmation"] and node["id"] not in state["approved_nodes"]:
             state["status"] = "waiting-confirmation"
             state["waiting_since"] = now_iso()
+            pause_active_timer(state, at=state["waiting_since"])
             save_state(root, state)
             return directive(root, state, workflow)
         if node["executor"] != "script":
             state["status"] = "waiting-external"
             state["waiting_since"] = now_iso()
+            pause_active_timer(state, at=state["waiting_since"])
             save_state(root, state)
             return directive(root, state, workflow)
         input_file, output_file = materialize_node_io(root, state, node)
@@ -398,6 +486,7 @@ def submit(args: argparse.Namespace) -> dict[str, Any]:
             "status": state["status"],
             "error": state.get("last_error"),
         }
+    start_active_timer(state)
     input_file, output_file = materialize_node_io(root, state, node)
     try:
         output = read_json(args.output.resolve())
@@ -448,6 +537,7 @@ def approve(args: argparse.Namespace) -> dict[str, Any]:
     if args.node_id not in state["approved_nodes"]:
         state["approved_nodes"].append(args.node_id)
     state["status"] = "running"
+    start_active_timer(state)
     append_trace(state, "node-approved", node_id=args.node_id, at=now_iso())
     save_state(root, state)
     return directive(root, state, workflow)
@@ -460,10 +550,20 @@ def resume(args: argparse.Namespace) -> dict[str, Any]:
     ensure_runtime_ready(root, skill_dir, workflow)
     state = load_state(root, args.state_id)
     check_limits(state, workflow)
-    if state["status"] != "waiting-user":
-        raise RuntimeErrorDetail("State is not waiting for the user")
-    state["status"] = "running"
-    append_trace(state, "user-resumed", at=now_iso())
+    if state["status"] == "waiting-user":
+        state["status"] = "running"
+        start_active_timer(state)
+        append_trace(state, "user-resumed", at=now_iso())
+    elif state["status"] == "waiting-external":
+        state["waiting_since"] = now_iso()
+        append_trace(
+            state,
+            "external-node-resumed",
+            node_id=state["current_node"],
+            at=state["waiting_since"],
+        )
+    else:
+        raise RuntimeErrorDetail("State is not waiting for the user or an external result")
     save_state(root, state)
     return directive(root, state, workflow)
 
