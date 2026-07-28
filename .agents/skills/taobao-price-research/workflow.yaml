@@ -26,7 +26,7 @@
               "default_detail_limit": 8,
               "default_review_limit": 3
             },
-            "instructions": "Preserve the requested product identity and constraints; create two to three distinct Taobao search queries; declare required and excluded terms; use only city-level destination data; set pacing to one page at a time, at least three seconds between automatic actions, zero retries after any risk event and a fifteen-minute observation cache; keep every collection limit within the declared maximum"
+            "instructions": "Preserve the requested product identity and constraints; set identity_phrases to one to five short continuous title phrases covering exact-model spelling variants, and set required_terms to atomic identity checks that must all be present; create two to three distinct Taobao search queries; declare excluded terms; use only city-level destination data; set pacing to one page at a time, at least three seconds between automatic actions, zero retries after any risk event and a fifteen-minute observation cache; keep every collection limit within the declared maximum"
           },
           "side_effect": "none",
           "requires_confirmation": false,

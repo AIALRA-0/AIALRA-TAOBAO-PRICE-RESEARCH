@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from decimal import Decimal
 from pathlib import Path
@@ -20,6 +21,14 @@ from domain_lib import (
 )
 
 
+def contains_term(text: str, term: str) -> bool:
+    if term in text:
+        return True
+    compact_text = re.sub(r"[\W_]+", "", text)
+    compact_term = re.sub(r"[\W_]+", "", term)
+    return bool(compact_term and compact_term in compact_text)
+
+
 def build_shortlist(payload: dict[str, Any]) -> dict[str, Any]:
     plan = require_object(payload.get("plan"), "plan")
     product = require_object(plan.get("product"), "plan.product")
@@ -30,6 +39,10 @@ def build_shortlist(payload: dict[str, Any]) -> dict[str, Any]:
     ]
     required_terms = [
         normalized_text(term) for term in require_list(product.get("required_terms"), "required_terms")
+    ]
+    identity_phrases = [
+        normalized_text(term)
+        for term in require_list(product.get("identity_phrases"), "identity_phrases")
     ]
     unique: dict[str, dict[str, Any]] = {}
     duplicates = 0
@@ -42,7 +55,12 @@ def build_shortlist(payload: dict[str, Any]) -> dict[str, Any]:
         if any(term and term in title_text for term in excluded_terms):
             mismatches += 1
             continue
-        if required_terms and not any(term and term in title_text for term in required_terms):
+        if required_terms and not all(contains_term(title_text, term) for term in required_terms):
+            mismatches += 1
+            continue
+        if identity_phrases and not any(
+            contains_term(title_text, phrase) for phrase in identity_phrases
+        ):
             mismatches += 1
             continue
         url = canonical_item_url(candidate.get("url"))

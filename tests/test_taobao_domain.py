@@ -35,6 +35,7 @@ def sample_plan() -> dict:
             "model": "RTX 5070 Ti",
             "core_specification": "16GB 全新独立显卡",
             "condition": "new",
+            "identity_phrases": ["5070 Ti 16GB", "5070Ti 16G"],
             "required_terms": ["5070 Ti", "16GB"],
             "excluded_terms": ["定金", "预售", "二手", "散热器", "支架", "空盒"],
         },
@@ -227,6 +228,25 @@ class TaobaoDomainTests(unittest.TestCase):
             ["aialra-shopping-browser"],
             result["shortlist"][0]["source_backends"],
         )
+
+    def test_shortlist_requires_every_product_identity_term(self) -> None:
+        payload = sample_search_results()
+        target_url = payload["candidates"][0]["url"]
+        first_required_term = payload["plan"]["product"]["required_terms"][0]
+        for candidate in payload["candidates"]:
+            if candidate["url"] == target_url:
+                candidate["title"] = f"{first_required_term} unrelated product"
+        urls = {item["url"] for item in build_shortlist(payload)["shortlist"]}
+        self.assertNotIn("https://item.taobao.com/item.htm?id=100001", urls)
+
+    def test_shortlist_rejects_scattered_identity_words(self) -> None:
+        payload = sample_search_results()
+        target_url = payload["candidates"][0]["url"]
+        for candidate in payload["candidates"]:
+            if candidate["url"] == target_url:
+                candidate["title"] = "RTX 5070 Ti premium computer bundle 16GB"
+        urls = {item["url"] for item in build_shortlist(payload)["shortlist"]}
+        self.assertNotIn("https://item.taobao.com/item.htm?id=100001", urls)
 
     def test_inspection_requires_direct_fresh_evidence(self) -> None:
         shortlist = build_shortlist(sample_search_results())
